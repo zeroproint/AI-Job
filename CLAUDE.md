@@ -26,6 +26,7 @@
 - ✅ 模块 3：`DifyService` / `DifyServiceImpl` / `DifyException`。已实测：文本调用返回 `{"status":"success", ...}`。
 - ✅ 模块 4：`ResumeService` / `ResumeServiceImpl`（`@Async("analysisExecutor") asyncAnalyze`）、`ResumeController`（`POST /api/resume/analyze/{id}`）、`AsyncConfig` 线程池、启动类 `@EnableAsync`。已实测：接口立即返回，报告先落 status=0，分析完成后更新为 status=1；简历不存在时 Controller 同步校验返回 400，不进入异步流程。
 - ✅ 模块 5：前后端对接完成。后端新增 CORS、简历上传解析（PDFBox 3.0.8 + POI 5.5.1，支持 PDF/Word/TXT）、简历列表、报告查询；前端新增 `utils/request.js`，上传页走真实上传+分析，报告页每 2 秒轮询并渲染。已用 Edge（Playwright）实测：上传 txt → 分析 → 轮询 → 报告渲染，总分 77、4 条评价、5 个维度、雷达图正常。
+- ✅ 模块 6：分析历史。后端 `GET /api/resume/history`（resume + resume_report 关联，每份简历取最新报告，总分用 MySQL `JSON_EXTRACT` 从 result 提取，最多 10 条）；前端 `history.vue` 去掉静态数据，`onShow` 加载真实数据，按状态 0/1/2 显示蓝/绿/红标签，点击带 `resumeId` 进报告页。浏览器实测 4 条不同状态记录与跳转均正常。用户已补 `static/xiazai.png`，报告页 404 已消除。
 - 用户流程：**一次只生成一个模块**；等用户回复“模块 N 完成，请发模块 N+1”后再继续，不要提前生成下一模块。
 
 ## Dify 集成
@@ -49,6 +50,7 @@
 
 - `POST /api/resume/upload`：multipart（字段名 `file`），解析 PDF/Word/TXT 后入库，返回 `{id, fileName, createTime}`；格式不支持或解析失败返回 400。
 - `GET /api/resume/list`：最近 100 份简历摘要（不含 content），按 id 倒序。
+- `GET /api/resume/history`：最近 10 份简历的分析历史；每份简历只取最新一次报告（否则按 resumeId 跳转报告页会与列表行不一致）。返回 `{reportId, resumeId, fileName, uploadTime, status, totalScore}`，totalScore 仅 status=1 且 result 为合法 JSON 时有值。
 - `POST /api/resume/analyze/{id}`：提交异步分析；简历不存在返回 400。
 - `GET /api/resume/report/{resumeId}`：最新一份报告 `{reportId, resumeId, status, result, errorMsg, createTime}`；尚未生成返回 404（前端轮询据此继续等待）。
 - 统一错误体：`{"message": "..."}`（`GlobalExceptionHandler`）。
@@ -86,7 +88,7 @@ MVN="C:/Users/柒玥/.m2/wrapper/dists/apache-maven-3.9.14-bin/1cb7fhup6b5n3bed6
   `npm install --cache D:/ai-job/.npm-cache`
 - 后端地址集中在 `utils/request.js`：默认 `http://localhost:8080`，可用 `VITE_API_BASE_URL` 覆盖。
 - 页面流程：`upload.vue` 上传后调 `POST /api/resume/analyze/{id}` 并带 `resumeId` 跳转；`report.vue` 每 2 秒轮询报告接口，处理 0（继续等）/1（渲染）/2（错误），3 分钟超时。
-- 报告页无 `resumeId` 打开（如从静态「分析历史」进入）时展示样例数据；`history.vue` 仍是静态数据，未接后端。
+- `history.vue` 在 `onShow` 调 `GET /api/resume/history`，点击记录带 `resumeId` 进报告页；报告页仍保留无 `resumeId` 时的静态样例兜底。
 
 ## 代码约定
 
@@ -97,6 +99,5 @@ MVN="C:/Users/柒玥/.m2/wrapper/dists/apache-maven-3.9.14-bin/1cb7fhup6b5n3bed6
 
 ## 下一步
 
-- 模块 5 已完成并浏览器实测通过。等用户指定模块 6 后再继续，不要提前生成。
-- 后续可做的方向（需用户确认）：`history.vue` 接后端历史列表（带最近一次分数）、用户体系（`user_id` 目前预留）、部署与 CORS 收紧。
-- 已遗留的小问题：`report.vue` 下载图标引用的 `/static/xiazai.png` 不存在（原有问题，与联调无关）。
+- 模块 6 已完成并浏览器实测通过。等用户指定模块 7 后再继续，不要提前生成。
+- 后续可做的方向（需用户确认）：用户体系（`user_id` 目前预留）、历史记录分页/筛选（现在固定 10 条且筛选按钮还是弹提示）、报告页按历史记录打开指定某次报告（目前只展示最新一次）、部署与 CORS 收紧。

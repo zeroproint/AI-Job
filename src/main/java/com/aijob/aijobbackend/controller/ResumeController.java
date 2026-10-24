@@ -1,6 +1,7 @@
 package com.aijob.aijobbackend.controller;
 
 import com.aijob.aijobbackend.dto.ReportView;
+import com.aijob.aijobbackend.dto.ResumeHistoryItem;
 import com.aijob.aijobbackend.dto.ResumeSummary;
 import com.aijob.aijobbackend.service.ResumeService;
 import lombok.RequiredArgsConstructor;
@@ -43,6 +44,14 @@ public class ResumeController {
     @GetMapping("/list")
     public List<ResumeSummary> list() {
         return resumeService.listRecent();
+    }
+
+    /**
+     * 简历分析历史：最近 10 份简历的最新一次报告。
+     */
+    @GetMapping("/history")
+    public List<ResumeHistoryItem> history() {
+        return resumeService.listHistory();
     }
 
     /**

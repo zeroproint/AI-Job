@@ -1,6 +1,7 @@
 package com.aijob.aijobbackend.service.impl;
 
 import com.aijob.aijobbackend.dto.ReportView;
+import com.aijob.aijobbackend.dto.ResumeHistoryItem;
 import com.aijob.aijobbackend.dto.ResumeSummary;
 import com.aijob.aijobbackend.entity.Resume;
 import com.aijob.aijobbackend.entity.ResumeReport;
@@ -96,6 +97,11 @@ public class ResumeServiceImpl implements ResumeService {
         }
         return new ReportView(report.getId(), report.getResumeId(), report.getStatus(),
                 report.getResult(), report.getErrorMsg(), report.getCreateTime());
+    }
+
+    @Override
+    public List<ResumeHistoryItem> listHistory() {
+        return resumeReportMapper.selectRecentHistory();
     }
 
     @Override

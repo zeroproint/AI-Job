@@ -1,6 +1,7 @@
 package com.aijob.aijobbackend.service;
 
 import com.aijob.aijobbackend.dto.ReportView;
+import com.aijob.aijobbackend.dto.ResumeHistoryItem;
 import com.aijob.aijobbackend.dto.ResumeSummary;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -33,6 +34,13 @@ public interface ResumeService {
      * @return 报告视图；尚未生成报告时返回 null
      */
     ReportView getLatestReport(Long resumeId);
+
+    /**
+     * 查询最近 10 份简历的分析历史（每份简历取最新一次报告）。
+     *
+     * @return 按报告时间倒序的历史记录
+     */
+    List<ResumeHistoryItem> listHistory();
 
     /**
      * 判断简历是否存在（已逻辑删除视为不存在）。
