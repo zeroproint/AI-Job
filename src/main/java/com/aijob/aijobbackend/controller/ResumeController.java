@@ -1,14 +1,21 @@
 package com.aijob.aijobbackend.controller;
 
+import com.aijob.aijobbackend.dto.ReportView;
+import com.aijob.aijobbackend.dto.ResumeSummary;
 import com.aijob.aijobbackend.service.ResumeService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -21,6 +28,35 @@ import java.util.Map;
 public class ResumeController {
 
     private final ResumeService resumeService;
+
+    /**
+     * 上传并解析简历文件（PDF / Word / TXT），解析出的文本入库。
+     */
+    @PostMapping(value = "/upload", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResumeSummary upload(@RequestParam("file") MultipartFile file) {
+        return resumeService.saveFromFile(file);
+    }
+
+    /**
+     * 最近上传的简历列表（不含简历正文）。
+     */
+    @GetMapping("/list")
+    public List<ResumeSummary> list() {
+        return resumeService.listRecent();
+    }
+
+    /**
+     * 查询某份简历的最新分析报告。
+     * 尚未生成报告时返回 404，前端轮询据此继续等待。
+     */
+    @GetMapping("/report/{resumeId}")
+    public ResponseEntity<ReportView> report(@PathVariable("resumeId") Long resumeId) {
+        ReportView report = resumeService.getLatestReport(resumeId);
+        if (report == null) {
+            return ResponseEntity.notFound().build();
+        }
+        return ResponseEntity.ok(report);
+    }
 
     /**
      * 提交简历分析任务（异步执行，立即返回）。

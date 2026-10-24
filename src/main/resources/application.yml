@@ -18,6 +18,11 @@ spring:
   jackson:
     date-format: yyyy-MM-dd HH:mm:ss
     time-zone: GMT+8
+  servlet:
+    multipart:
+      # 简历文件大小限制，与前端提示保持一致
+      max-file-size: 10MB
+      max-request-size: 12MB
 
 mybatis-plus:
   # Mapper XML 位置（模块 2 之后才会用到，先留好约定）
