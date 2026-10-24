@@ -19,12 +19,12 @@
 - 本机 8080 端口常被其他 Java 进程占用，启动验证建议加 `--server.port=0`。
 - `application.yml` 内含真实 MySQL 密码和 Dify API Key。仓库是私有仓库，**用户自己负责 commit / push，不要擅自执行 git 操作，也不要把密钥外泄**。
 
-## 当前进度（2026-10-24）
+## 当前进度（2026-10-25）
 
 - ✅ 模块 1：建表 SQL、`application.yml`、pom 依赖、`WebClientConfig`（120 秒超时）。
 - ✅ 模块 2：`Resume` / `ResumeReport` 实体、`ResumeMapper` / `ResumeReportMapper`（`@Mapper` + `BaseMapper`）。
 - ✅ 模块 3：`DifyService` / `DifyServiceImpl` / `DifyException`。已实测：文本调用返回 `{"status":"success", ...}`。
-- ⏳ 模块 4：未开始。内容：`ResumeService`（`@Async asyncAnalyze(Long resumeId)`）、`ResumeController`（`POST /api/resume/analyze/{id}`）、启动类加 `@EnableAsync`。
+- ✅ 模块 4：`ResumeService` / `ResumeServiceImpl`（`@Async("analysisExecutor") asyncAnalyze`）、`ResumeController`（`POST /api/resume/analyze/{id}`）、`AsyncConfig` 线程池、启动类 `@EnableAsync`。已实测：接口立即返回，报告先落 status=0，分析完成后更新为 status=1；简历不存在时 Controller 同步校验返回 400，不进入异步流程。
 - 用户流程：**一次只生成一个模块**；等用户回复“模块 N 完成，请发模块 N+1”后再继续，不要提前生成下一模块。
 
 ## Dify 集成
@@ -73,12 +73,7 @@ MVN="C:/Users/柒玥/.m2/wrapper/dists/apache-maven-3.9.14-bin/1cb7fhup6b5n3bed6
 - 注释用中文，简洁说明意图；日志用 `@Slf4j`，**不要打印 API Key**。
 - 新依赖优先选 Boot 4 对应 starter，并先确认 Maven Central 坐标可用。
 
-## 下一步（模块 4）
+## 下一步
 
-1. `ResumeService` / `ResumeServiceImpl`：
-   - `@Async void asyncAnalyze(Long resumeId)`；
-   - 查 `resume` → 调 `difyService.chat(content)` → 写 `resume_report`；
-   - 成功 `status=1`，失败 `status=2` 并写 `error_msg`。
-2. `ResumeController`：`POST /api/resume/analyze/{id}`，调用异步方法后立即返回成功提示。
-3. 启动类加 `@EnableAsync`（建议同时配置自定义线程池，避免使用默认无界队列）。
-4. 完成后做端到端验证：插入测试简历 → 调接口 → 轮询/查询报告表。
+- 模块 4 已完成并端到端验证。等用户指定模块 5 后再继续，不要提前生成。
+- 现有接口只有提交分析（`POST /api/resume/analyze/{id}`），尚缺按简历ID查询报告的接口；若模块 5 涉及前端联调，大概率需要补充。
