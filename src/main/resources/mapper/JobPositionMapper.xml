@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.aijob.aijobbackend.mapper.JobPositionMapper">
+
+    <!--
+        职位动态查询：所有条件均可选。
+        薪资区间用 overlap 语义：职位薪资区间与筛选区间有交集即命中。
+    -->
+    <select id="selectByCondition" resultType="com.aijob.aijobbackend.entity.JobPosition">
+        SELECT id,
+               name,
+               salary,
+               salary_min,
+               salary_max,
+               company,
+               company_size,
+               tags,
+               location,
+               education,
+               experience,
+               financing,
+               create_time
+        FROM job_position
+        <where>
+            <if test="keyword != null and keyword != ''">
+                AND (name LIKE CONCAT('%', #{keyword}, '%')
+                OR company LIKE CONCAT('%', #{keyword}, '%')
+                OR location LIKE CONCAT('%', #{keyword}, '%')
+                OR tags LIKE CONCAT('%', #{keyword}, '%'))
+            </if>
+            <if test="location != null and location != ''">
+                AND location LIKE CONCAT(#{location}, '%')
+            </if>
+            <if test="education != null and education != ''">
+                AND education = #{education}
+            </if>
+            <if test="experience != null and experience != ''">
+                AND REPLACE(experience, ' ', '') = REPLACE(#{experience}, ' ', '')
+            </if>
+            <if test="size != null and size != ''">
+                AND REPLACE(company_size, ' ', '') = REPLACE(#{size}, ' ', '')
+            </if>
+            <if test="financing != null and financing != ''">
+                AND financing = #{financing}
+            </if>
+            <if test="salaryMin != null">
+                AND salary_max &gt;= #{salaryMin}
+            </if>
+            <if test="salaryMax != null">
+                AND salary_min &lt;= #{salaryMax}
+            </if>
+        </where>
+        ORDER BY id ASC
+    </select>
+
+</mapper>
