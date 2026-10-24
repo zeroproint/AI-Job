@@ -1,0 +1,46 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: ai-job-backend
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://localhost:3306/ai-job?useUnicode=true&characterEncoding=utf8&useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Asia/Shanghai
+    username: root
+    # TODO: 改成你本机 MySQL 的密码
+    password: 123456
+    hikari:
+      minimum-idle: 2
+      maximum-pool-size: 10
+      connection-timeout: 30000
+      idle-timeout: 600000
+  jackson:
+    date-format: yyyy-MM-dd HH:mm:ss
+    time-zone: GMT+8
+
+mybatis-plus:
+  # Mapper XML 位置（模块 2 之后才会用到，先留好约定）
+  mapper-locations: classpath*:/mapper/**/*.xml
+  type-aliases-package: com.aijob.aijobbackend.entity
+  configuration:
+    map-underscore-to-camel-case: true
+    # 开发阶段打印 SQL，上线前改为 org.apache.ibatis.logging.nologging.NoLoggingImpl
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+  global-config:
+    banner: false
+    db-config:
+      id-type: auto
+      logic-delete-field: deleted
+      logic-delete-value: 1
+      logic-not-delete-value: 0
+
+# Dify 应用配置（CHATFLOW 类型）
+dify:
+  api-url: http://localhost/v1/chat-messages
+  # TODO: 替换为你的 Dify 应用 API Key（应用「访问 API」页面获取）
+  api-key: app-Ep0JGLCrff78KPfvwgoJZuzZ
+  # Dify 会话标识，可按用户区分，先统一用应用名
+  user: ai-job-backend
+  # 解析 / 生成类任务较慢，超时放宽到 120 秒
+  timeout-seconds: 120
